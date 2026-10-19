@@ -1,6 +1,6 @@
 # FASEG DOCS
 
-A French-language academic resource platform for FASEG students and professors in Benin, with searchable course documents and university announcements.
+A French-language academic resource platform serving FASEG students and professors in Parakou, Bénin, with searchable course documents and university announcements.
 
 ## Run & Operate
 
