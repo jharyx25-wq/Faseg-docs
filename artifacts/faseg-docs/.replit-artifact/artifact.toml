@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "FASEG DOCS"
+description = "A French-language university learning platform for students and professors in Benin. Students browse and download organized course materials and view academic announcements; professors manage published documents and updates through a password-protected dashboard."
+version = "1.0.0"
+id = "artifacts/faseg-docs"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25404
+
+[services.development]
+run = "pnpm --filter @workspace/faseg-docs run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/faseg-docs", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/faseg-docs/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25404"
+BASE_PATH = "/"

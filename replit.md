@@ -1,10 +1,11 @@
-# [Project name]
+# FASEG DOCS
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A French-language academic resource platform for FASEG students and professors in Benin, with searchable course documents and university announcements.
 
 ## Run & Operate
 
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/faseg-docs run dev` — run the FASEG DOCS web app
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -22,23 +23,32 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/faseg-docs/` — French-language student library and teacher dashboard
+- `artifacts/api-server/src/routes/` — document, announcement, teacher-session, and dashboard APIs
+- `lib/db/src/schema/` — PostgreSQL tables for document metadata and announcements
+- `lib/api-spec/openapi.yaml` — source of truth for API contracts and generated hooks
+- Uploaded PDF and image files — persistent Replit App Storage; PostgreSQL stores metadata and object paths
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Course files live in App Storage, while searchable document metadata and announcements live in PostgreSQL.
+- The teacher dashboard uses a shared teacher password stored as a server-side secret; sessions use a signed, HTTP-only cookie.
+- Students access files through a document record and a server download route, not by exposing storage credentials or bucket paths.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Students can search and filter course files by subject, academic level, and semester; browse academic announcements and schedules; download materials; and share links through WhatsApp.
+- Professors can sign in to publish, edit, and remove course materials and academic announcements.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- The interface language is French.
+- Use a professional university look with dark navy blue, white, and gold, responsive on Android phones and computers.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Only teacher routes may generate upload URLs or mutate published documents and announcements.
+- Keep the shared teacher password and session signing secret in Replit Secrets; never place either in browser code.
 
 ## Pointers
 

@@ -10,6 +10,14 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: documents
+    description: Course documents available to students
+  - name: announcements
+    description: University announcements and academic events
+  - name: teacher
+    description: Teacher dashboard access
+  - name: dashboard
+    description: Public platform summary
 paths:
   /healthz:
     get:
@@ -24,7 +32,288 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /documents:
+    get:
+      operationId: listDocuments
+      tags: [documents]
+      summary: List published course documents
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: subject
+          schema: { type: string }
+        - in: query
+          name: level
+          schema: { type: string }
+        - in: query
+          name: semester
+          schema: { type: string }
+      responses:
+        "200":
+          description: Documents matching the selected filters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+    post:
+      operationId: createDocument
+      tags: [documents]
+      summary: Publish a course document
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentInput"
+      responses:
+        "201":
+          description: Document published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "401":
+          description: Teacher authentication required
+  /documents/upload-url:
+    post:
+      operationId: requestDocumentUpload
+      tags: [documents]
+      summary: Request a temporary upload URL for a document
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadInput"
+      responses:
+        "200":
+          description: Temporary upload URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadTicket"
+        "400":
+          description: Unsupported file or invalid metadata
+        "401":
+          description: Teacher authentication required
+  /documents/{id}:
+    get:
+      operationId: getDocument
+      tags: [documents]
+      summary: Get a published document
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Published document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "404":
+          description: Document not found
+    patch:
+      operationId: updateDocument
+      tags: [documents]
+      summary: Edit a published document
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentUpdate"
+      responses:
+        "200":
+          description: Updated document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "401":
+          description: Teacher authentication required
+        "404":
+          description: Document not found
+    delete:
+      operationId: deleteDocument
+      tags: [documents]
+      summary: Delete a course document
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204":
+          description: Document deleted
+        "401":
+          description: Teacher authentication required
+        "404":
+          description: Document not found
+  /documents/{id}/file:
+    get:
+      operationId: downloadDocument
+      tags: [documents]
+      summary: Download a published document
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: PDF or image file
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+            image/jpeg:
+              schema: { type: string, format: binary }
+            image/png:
+              schema: { type: string, format: binary }
+            image/webp:
+              schema: { type: string, format: binary }
+        "404":
+          description: Document not found
+  /announcements:
+    get:
+      operationId: listAnnouncements
+      tags: [announcements]
+      summary: List published announcements and academic events
+      parameters:
+        - in: query
+          name: category
+          schema:
+            $ref: "#/components/schemas/AnnouncementCategory"
+        - in: query
+          name: search
+          schema: { type: string }
+      responses:
+        "200":
+          description: Published announcements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Announcement"
+    post:
+      operationId: createAnnouncement
+      tags: [announcements]
+      summary: Publish an announcement or academic event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementInput"
+      responses:
+        "201":
+          description: Announcement published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+        "401":
+          description: Teacher authentication required
+  /announcements/{id}:
+    patch:
+      operationId: updateAnnouncement
+      tags: [announcements]
+      summary: Edit an announcement
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementUpdate"
+      responses:
+        "200":
+          description: Updated announcement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+        "401":
+          description: Teacher authentication required
+        "404":
+          description: Announcement not found
+    delete:
+      operationId: deleteAnnouncement
+      tags: [announcements]
+      summary: Delete an announcement
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204":
+          description: Announcement deleted
+        "401":
+          description: Teacher authentication required
+        "404":
+          description: Announcement not found
+  /teacher/login:
+    post:
+      operationId: teacherLogin
+      tags: [teacher]
+      summary: Start a teacher session using the shared password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeacherLoginInput"
+      responses:
+        "200":
+          description: Teacher session started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeacherSession"
+        "401":
+          description: Incorrect password
+  /teacher/session:
+    get:
+      operationId: getTeacherSession
+      tags: [teacher]
+      summary: Check whether the current browser has a teacher session
+      responses:
+        "200":
+          description: Session status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeacherSession"
+  /teacher/logout:
+    post:
+      operationId: teacherLogout
+      tags: [teacher]
+      summary: End the current teacher session
+      responses:
+        "200":
+          description: Teacher session ended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeacherSession"
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get current document and announcement counts
+      responses:
+        "200":
+          description: Public dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
 components:
+  parameters:
+    Id:
+      in: path
+      name: id
+      required: true
+      schema: { type: integer, minimum: 1 }
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +322,125 @@ components:
           type: string
       required:
         - status
+    Document:
+      type: object
+      required: [id, title, description, subject, level, semester, fileName, contentType, fileSize, createdAt]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        description: { type: string }
+        subject: { type: string }
+        level: { type: string }
+        semester: { type: string }
+        fileName: { type: string }
+        contentType: { type: string }
+        fileSize: { type: integer }
+        createdAt: { type: string, format: date-time }
+    DocumentInput:
+      type: object
+      required: [title, subject, level, semester, fileName, contentType, fileSize, objectPath]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 180 }
+        description: { type: string, maxLength: 3000 }
+        subject: { type: string, minLength: 1, maxLength: 120 }
+        level: { type: string, minLength: 1, maxLength: 80 }
+        semester: { type: string, minLength: 1, maxLength: 80 }
+        fileName: { type: string, minLength: 1, maxLength: 255 }
+        contentType:
+          type: string
+          enum: [application/pdf, image/jpeg, image/png, image/webp]
+        fileSize: { type: integer, minimum: 1, maximum: 26214400 }
+        objectPath: { type: string, minLength: 1, maxLength: 500 }
+    DocumentUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 1, maxLength: 180 }
+        description: { type: string, maxLength: 3000 }
+        subject: { type: string, minLength: 1, maxLength: 120 }
+        level: { type: string, minLength: 1, maxLength: 80 }
+        semester: { type: string, minLength: 1, maxLength: 80 }
+    UploadInput:
+      type: object
+      required: [name, size, contentType]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 255 }
+        size: { type: integer, minimum: 1, maximum: 26214400 }
+        contentType:
+          type: string
+          enum: [application/pdf, image/jpeg, image/png, image/webp]
+    UploadTicket:
+      type: object
+      required: [uploadURL, objectPath]
+      properties:
+        uploadURL: { type: string, format: uri }
+        objectPath: { type: string }
+    AnnouncementCategory:
+      type: string
+      enum: [announcement, homework, exam, schedule, schedule_change]
+    Announcement:
+      type: object
+      required: [id, title, content, category, subject, level, eventDate, startTime, endTime, location, createdAt]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        content: { type: string }
+        category:
+          $ref: "#/components/schemas/AnnouncementCategory"
+        subject: { type: ["string", "null"] }
+        level: { type: ["string", "null"] }
+        eventDate:
+          type: ["string", "null"]
+          pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        startTime: { type: ["string", "null"] }
+        endTime: { type: ["string", "null"] }
+        location: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+    AnnouncementInput:
+      type: object
+      required: [title, content, category]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 180 }
+        content: { type: string, minLength: 1, maxLength: 5000 }
+        category:
+          $ref: "#/components/schemas/AnnouncementCategory"
+        subject: { type: ["string", "null"], maxLength: 120 }
+        level: { type: ["string", "null"], maxLength: 80 }
+        eventDate:
+          type: ["string", "null"]
+          pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        startTime: { type: ["string", "null"], maxLength: 20 }
+        endTime: { type: ["string", "null"], maxLength: 20 }
+        location: { type: ["string", "null"], maxLength: 180 }
+    AnnouncementUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 1, maxLength: 180 }
+        content: { type: string, minLength: 1, maxLength: 5000 }
+        category:
+          $ref: "#/components/schemas/AnnouncementCategory"
+        subject: { type: ["string", "null"], maxLength: 120 }
+        level: { type: ["string", "null"], maxLength: 80 }
+        eventDate:
+          type: ["string", "null"]
+          pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        startTime: { type: ["string", "null"], maxLength: 20 }
+        endTime: { type: ["string", "null"], maxLength: 20 }
+        location: { type: ["string", "null"], maxLength: 180 }
+    TeacherLoginInput:
+      type: object
+      required: [password]
+      properties:
+        password: { type: string, minLength: 1, maxLength: 500 }
+    TeacherSession:
+      type: object
+      required: [authenticated]
+      properties:
+        authenticated: { type: boolean }
+    DashboardSummary:
+      type: object
+      required: [documentCount, announcementCount, upcomingCount]
+      properties:
+        documentCount: { type: integer }
+        announcementCount: { type: integer }
+        upcomingCount: { type: integer }
 
